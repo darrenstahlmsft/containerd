@@ -112,11 +112,16 @@ func (s *service) Create(ctx context.Context, r *api.CreateTaskRequest) (*api.Cr
 		if err != nil {
 			return nil, err
 		}
-		_, err = archive.Apply(ctx, checkpointPath, content.NewReader(reader))
+		_ = reader
+		_ = checkpointPath
+		panic("service create")
+		// TODO: Commenting this out in order to compile and test on Windows. Add back before PR
+
+		//_, err = archive.Apply(ctx, checkpointPath, content.NewReader(reader))
 		reader.Close()
-		if err != nil {
-			return nil, err
-		}
+		//if err != nil {
+		//	return nil, err
+		//}
 	}
 
 	container, err := s.getContainer(ctx, r.ContainerID)

@@ -72,36 +72,11 @@ func newWindowsContainerConfig(ctx context.Context, owner, id string, spec *spec
 		})
 	}
 
-	var (
-		di = hcsshim.DriverInfo{
-			Flavour: 1, // filter driver
-			HomeDir: homeDir,
-		}
-	)
+	var di = hcsshim.DriverInfo{
+		Flavour: 1,
+		HomeDir: filepath.Dir(layerFolderPath),
+	}
 	conf.LayerFolderPath = layerFolderPath
-
-	// TODO: Once there is a snapshotter for windows, this can be deleted.
-	// The R/W Layer should come from the Rootfs Mounts provided
-	//
-	// Windows doesn't support creating a container with a readonly
-	// filesystem, so always create a RW one
-	if err = hcsshim.CreateSandboxLayer(di, id, layerFolders[0], layerFolders); err != nil {
-		return nil, errors.Wrapf(err, "failed to create sandbox layer for %s: layers: %#v, driverInfo: %#v",
-			id, layerFolders, di)
-	}
-	defer func() {
-		if err != nil {
-			removeLayer(ctx, conf.LayerFolderPath)
-		}
-	}()
-
-	if err = hcsshim.ActivateLayer(di, id); err != nil {
-		return nil, errors.Wrapf(err, "failed to activate layer %s", conf.LayerFolderPath)
-	}
-
-	if err = hcsshim.PrepareLayer(di, id, layerFolders); err != nil {
-		return nil, errors.Wrapf(err, "failed to prepare layer %s", conf.LayerFolderPath)
-	}
 
 	conf.VolumePath, err = hcsshim.GetLayerMountPath(di, id)
 	if err != nil {
